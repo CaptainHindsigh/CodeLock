@@ -1,0 +1,87 @@
+Code Lock with ESP8266 (ESP32 should also work but is untested)
+
+Hardware needed:
+    Wemos D1 Mini (ESP8266)
+    Some kind of electric lock.
+    A connected matrix keypad with digits 0 through 9, size 3x4.
+    The matrix is connected to pins D1 through D7:
+    D1 to D4 are connected to the rows.
+    D5 to D7 are connected to the columns.
+    A relay board to control the lock connected to D8.
+    Optional reed switch to detect unlocked/locked/door opened/closed connected between D0 and GND.
+    Additionally, a 5V power supply is required, such as from a USB charger.
+
+Features:
+    WiFi connectivity but can run without network connection but chcking valid times will be a problem since ESP8266 has no RTC.
+    Admin web page.
+    MQTT connectivity for automations with Home Assistant or similar.
+    Supports 8 local individual codes, consisting of the digits 0 through 9,* and #, with a maximum length of 8.
+    Different codes can be valid at specific hours of the day.
+    Unlock the lock using the keypad by entering a valid code, or
+    unlock from admin page, or unlock from MQTT.
+    If "AlwaysOpenOn" is set, the lock will be unlocked all the time.
+    Automatically connects to an MQTT broker if one is configured.
+    Unlock and set AlwaysOpen from MQTT.
+    The program updates an MQTT server/topic with activity, including timestamps, who unlocked the door, commands published from MQTT and admin page, and input from the keypad.
+    You can text a temporary code to a customers mobile and validate the keypresses and unlock via MQTT, as an example. 
+    Optional detection when the lock/door is opened using a reed switch connected to D8. (Switch is detecting changes.)
+    Serial interface enabled in USB, 9600 baud.
+    OTA updates.
+
+Wi-Fi Connectivity:
+    Configure initial Wi-Fi settings via a simple Access Point (AP) and a web page.
+    WiFi Settings are stored in non volatile memory.
+    
+Password-Protected Admin Web Page:
+    The admin page features:
+    A button to manually unlock the door.
+    A button to permanently put the lock in always-unlocked mode".
+    Managing codes, their validity periods, and comments/users. 
+    There is a button to delete configuration file if needed which at reboot will create the default config file.
+    Configuring the MQTT broker (address, username, password, topic).
+    If you have multiple doors, door names should be different, and MQTT topic should be descriptive for ease of identification.
+    Changing the admin password for the admin page.
+    Forget the WiFi settings which will create an Access Point for 60 seconds
+Configuration Storage:
+    Configuration is saved in a JSON file on a non-volatile partition, ensuring it persists across reboots or firmware uploads.
+    A default configuration is created if no valid configuration file exists or if it becomes corrupted.
+    
+Default Settings:
+    Default code #1: 12345678 , Valid 24 hours around the clock
+    Default admin web page password: adminpass
+    Default door/lock/MQTT client name: Door 
+    NtpServer pool.ntp.org
+    TimeZone PST8PDT,M3.2.0,M11.1.0   See https://gist.github.com/alwynallan/24d96091655391107939 for details about TZ and DST
+    RelayPullTime 1000 (mS)
+
+Known issues:
+    No https encryption on web page.
+    No TLS encryption for MQTT connection.
+    
+MQTT:
+    Topics:
+        Door/CodeLock/activity    Shows status
+        Door/CodeLock/keypressed  Shows last keypad press
+        Door/CodeLock/cmnd        Topic for commands
+    
+    In Door/CodeLock/activity:   
+    Status messages:
+        Door unlocked by <name>
+        Door unlocked by admin
+        Door unlocked by MQTT
+        Door unlocked by AlwaysOpen 
+        Reed switch open
+        Reed switch closed
+        <timestamp> AlwaysOpen is now on.
+        <timestamp> AlwaysOpen is now off.
+
+    In Door/CodeLock/cmnd:
+    Valid publish commands:
+        Unlock          Unlocks door once
+        AlwaysOpenOn    Enables AlwaysOpen state
+        AlwaysOpenOff   Disables AlwaysOpen state
+        0-9,*,#         Enter codes for testing
+        SetNtpServer pool.ntp.org
+        SetTimeZone PST8PDT,M3.2.0,M11.1.0  
+        SetRelayPullTime 1000
+===================================================
