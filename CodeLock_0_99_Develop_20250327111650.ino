@@ -679,9 +679,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 // MQTT reconnect
 void reconnect() {
-    if (client.connect("%sCodeLock", mqttUser.c_str(), mqttPassword.c_str())) {
+    String clientId = "CodeLock-" + doorName; // Unique Client ID
+    if (client.connect(clientId.c_str(), mqttUser.c_str(), mqttPassword.c_str())) {
+
+//  if (client.connect("%sCodeLock", mqttUser.c_str(), mqttPassword.c_str())) {
       char sub_topic[300];  // Subscription topic buffer
       snprintf(sub_topic, sizeof(sub_topic), "%s/CodeLock/cmnd", mqttTopic.c_str());
+//    snprintf(sub_topic, sizeof(sub_topic), "%s/CodeLock/%s/cmnd", mqttTopic.c_str(), doorName.c_str()); // unique cmnd topic?
       client.subscribe(sub_topic);  // Subscribe using sub_topic
       snprintf(topic, sizeof(topic), "%s/CodeLock/activity", mqttTopic.c_str());
       client.publish(topic, "Connected to MQTT");
